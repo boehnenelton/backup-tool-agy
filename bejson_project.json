@@ -19,36 +19,126 @@
     "RootPackage"
   ],
   "Fields": [
-    {"name": "Project_Name", "type": "string"},
-    {"name": "Project_Version", "type": "string"},
-    {"name": "Package_Version", "type": "string"},
-    {"name": "Project_Root_Path", "type": "string"},
-    {"name": "Project_GUID", "type": "string"},
-    {"name": "Versioned_UUID", "type": "string"},
-    {"name": "Session_Id", "type": "string"},
-    {"name": "Author", "type": "string"},
-    {"name": "Description", "type": "string"},
-    {"name": "Type", "type": "string"},
-    {"name": "Status", "type": "string"},
-    {"name": "Project_Modified_Date", "type": "string"},
-    {"name": "Package_Date", "type": "string"},
-    {"name": "Remote_Repo_URL", "type": "string"},
-    {"name": "Git_Branch", "type": "string"},
-    {"name": "Git_Commit_Hash", "type": "string"},
-    {"name": "Main_Executable", "type": "string"},
-    {"name": "Runtime_Type", "type": "string"},
-    {"name": "BEJSON_Lib_Version", "type": "string"},
-    {"name": "Archive_Filename", "type": "string"},
-    {"name": "Package_Checksum_SHA256", "type": "string"},
-    {"name": "Marker_File_Path", "type": "string"},
-    {"name": "Drive_Path", "type": "string"},
-    {"name": "First_Detected_Date", "type": "string"},
-    {"name": "Last_Seen_Date", "type": "string"},
-    {"name": "Detected_By_Index_Type", "type": "string"},
-    {"name": "Raw_JSON", "type": "string"},
-    {"name": "Change_Log", "type": "string"},
-    {"name": "Known_Issues", "type": "string"},
-    {"name": "User_Feedback", "type": "string"}
+    {
+      "name": "Project_Name",
+      "type": "string"
+    },
+    {
+      "name": "Project_Version",
+      "type": "string"
+    },
+    {
+      "name": "Package_Version",
+      "type": "string"
+    },
+    {
+      "name": "Project_Root_Path",
+      "type": "string"
+    },
+    {
+      "name": "Project_GUID",
+      "type": "string"
+    },
+    {
+      "name": "Versioned_UUID",
+      "type": "string"
+    },
+    {
+      "name": "Session_Id",
+      "type": "string"
+    },
+    {
+      "name": "Author",
+      "type": "string"
+    },
+    {
+      "name": "Description",
+      "type": "string"
+    },
+    {
+      "name": "Type",
+      "type": "string"
+    },
+    {
+      "name": "Status",
+      "type": "string"
+    },
+    {
+      "name": "Project_Modified_Date",
+      "type": "string"
+    },
+    {
+      "name": "Package_Date",
+      "type": "string"
+    },
+    {
+      "name": "Remote_Repo_URL",
+      "type": "string"
+    },
+    {
+      "name": "Git_Branch",
+      "type": "string"
+    },
+    {
+      "name": "Git_Commit_Hash",
+      "type": "string"
+    },
+    {
+      "name": "Main_Executable",
+      "type": "string"
+    },
+    {
+      "name": "Runtime_Type",
+      "type": "string"
+    },
+    {
+      "name": "BEJSON_Lib_Version",
+      "type": "string"
+    },
+    {
+      "name": "Archive_Filename",
+      "type": "string"
+    },
+    {
+      "name": "Package_Checksum_SHA256",
+      "type": "string"
+    },
+    {
+      "name": "Marker_File_Path",
+      "type": "string"
+    },
+    {
+      "name": "Drive_Path",
+      "type": "string"
+    },
+    {
+      "name": "First_Detected_Date",
+      "type": "string"
+    },
+    {
+      "name": "Last_Seen_Date",
+      "type": "string"
+    },
+    {
+      "name": "Detected_By_Index_Type",
+      "type": "string"
+    },
+    {
+      "name": "Raw_JSON",
+      "type": "string"
+    },
+    {
+      "name": "Change_Log",
+      "type": "string"
+    },
+    {
+      "name": "Known_Issues",
+      "type": "string"
+    },
+    {
+      "name": "User_Feedback",
+      "type": "string"
+    }
   ],
   "Values": [
     [
@@ -72,14 +162,14 @@
       "python3",
       "104a",
       "Backup_Tool_AGY-V100-PKG100.zip",
-      "",
+      "008a85394a83f5ccca2cc4e2188fc9364d5cf308eed80852c23602ac50047734",
       "",
       "",
       "2026-11-12T07:05:00Z",
       "2026-11-12T07:20:00Z",
       "Manual_Packaging",
       "{}",
-      "1.0.0 | 2026-11-12 | Initial release of Universal Config-Driven 10-Slot Loaded Chamber CLI (chamber-cli), AGY Disc Changer (agy-slots), and Multi-Scope Ecosystem Backup Engine (backup_tool_agy.py) with ANSI Tri-Color TUI.",
+      "1.0.0 | 2026-11-12 | Initial release of Universal Config-Driven 10-Slot Loaded Chamber CLI (chamber-cli), AGY Disc Changer (agy-slots), and Multi-Scope Ecosystem Backup Engine (backup_tool_agy.py) with ANSI Tri-Color TUI.\n1.0.0 | 2026-11-12 | Initial release of Universal Config-Driven 10-Slot Loaded Chamber CLI and ANSI TUI",
       "None reported.",
       "None recorded."
     ]
