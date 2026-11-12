@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+*.lock
+data/temp/
+*.tmp
+*.zip
+*.bak
+*.log
+backup-*/
+agy-slots/

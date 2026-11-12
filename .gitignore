@@ -1,0 +1,29 @@
+# Bytecode and runtime caches
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+*.log
+
+# Backup archives and snapshot dumps (Strict Filter)
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.7z
+*.bak
+*.tmp
+*.tmp.zip
+*.tmp.*
+*.swp
+backup-*/
+agy-slots/
+slots_backup/
+data_temp/
+scratch/
+
+# Local state & environment
+.env/secure/
+.server.pid
+.DS_Store

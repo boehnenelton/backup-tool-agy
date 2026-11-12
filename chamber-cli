@@ -1,0 +1,11 @@
+#!/data/data/com.termux/files/usr/bin/env bash
+# Name:          chamber-cli
+# Description:   Universal Config-Driven 10-Slot Loaded Chamber CLI
+# Version:       10400
+# Date Created:  2026-11-12
+# Author Credit: Elton Boehnen · boehnenelton2024@gmail.com · boehnenelton2024.pages.dev · github.com/boehnenelton
+# License:       PolyForm Noncommercial License 1.0.0 (PolyForm-Noncommercial-1.0.0)
+# RELATIONAL_ID: 9c5e317b-23a4-4f8e-8bf0-89025171e1de
+
+SCRIPT_DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
+exec python3 "${SCRIPT_DIR}/universal_snapshot_engine.py" "$@"
