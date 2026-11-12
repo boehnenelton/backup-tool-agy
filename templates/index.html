@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Loaded Chamber — Slot Changer & Ecosystem Snapshot</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+  <!-- Header Row (Policy §3 Header Design Law: Hamburger | App Title <= 3 words | Settings Cog) -->
+  <header class="header-row">
+    <button class="header-btn" onclick="toggleMenu()" title="Profiles Drawer">☰</button>
+    <div class="app-title">Loaded <span>Chamber</span> Web</div>
+    <button class="header-btn" onclick="openModal('modal-settings')" title="Settings">⚙</button>
+  </header>
+
+  <!-- Overflow Dock Strip -->
+  <div class="dock-strip">
+    {% for prof in profiles %}
+      <a href="/?profile={{ prof.name }}" class="dock-tab {% if prof.name == active_profile %}active{% endif %}">
+        {{ prof.name }}
+      </a>
+    {% endfor %}
+    <button class="dock-tab" onclick="openModal('modal-new-profile')">+ New Profile</button>
+    <button class="dock-tab" onclick="openModal('modal-add-rule')">+ Add Path Rule</button>
+  </div>
+
+  <div class="container">
+
+    <!-- Overview Card -->
+    <div class="overview-card">
+      <div class="overview-meta">
+        <h2>Active Profile: {{ active_profile }}</h2>
+        <p>Active Slot: {% if active_slot_id > 0 %}Slot {{ active_slot_id }}{% else %}None (Neutral Baseline){% endif %} &nbsp;|&nbsp; Emergency Safe: {% if emergency_restored %}Unlocked{% else %}Locked{% endif %}</p>
+      </div>
+      <div class="overview-actions">
+        <button class="btn btn-secondary btn-sm" onclick="location.reload()">Refresh</button>
+        <button class="btn btn-danger btn-sm" onclick="openEmergencyModal()">Emergency Restore</button>
+      </div>
+    </div>
+
+    <!-- Slots Section -->
+    <div class="section-header">
+      <h3>Chamber Slots (10 Slots + Emergency)</h3>
+    </div>
+
+    <div class="slots-grid">
+      {% for slot in slots %}
+        <div class="slot-card {% if slot.is_active %}active{% endif %} {% if slot.is_emergency %}emergency{% endif %}">
+          <div class="slot-head">
+            <div class="slot-badge">
+              {% if slot.is_emergency %}EMERGENCY{% elif slot.is_active %}ACTIVE SLOT {{ slot.slot_id }}{% else %}SLOT {{ slot.slot_id }}{% endif %}
+            </div>
+            {% if slot.is_active %}
+              <span style="color: var(--active-green); font-size: 11px; font-weight: 700;">● LOADED</span>
+            {% endif %}
+          </div>
+          <div class="slot-name">{{ slot.slot_name }}</div>
+          <div class="slot-label">{{ slot.slot_label or 'Empty Slot' }}</div>
+          
+          <div class="slot-stats">
+            Items: <span>{{ slot.item_count }}</span> &nbsp;|&nbsp; Saved: <span>{{ slot.last_saved[:10] if slot.last_saved else '—' }}</span>
+          </div>
+
+          <div class="slot-actions">
+            {% if not slot.is_emergency %}
+              <button class="btn btn-primary btn-sm" onclick="loadSlot({{ slot.slot_id }})">Load</button>
+              <button class="btn btn-secondary btn-sm" onclick="openSaveModal({{ slot.slot_id }})">Save</button>
+              <button class="btn btn-secondary btn-sm" onclick="openCopyModal({{ slot.slot_id }})">Copy</button>
+            {% else %}
+              <button class="btn btn-danger btn-sm" onclick="openEmergencyModal()">Restore Emergency</button>
+            {% endif %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+
+    <!-- Path Rules Section -->
+    <div class="section-header">
+      <h3>Configured Path Rules & Filters ({{ active_profile }})</h3>
+      <button class="btn btn-secondary btn-sm" onclick="openModal('modal-add-rule')">+ Add Rule</button>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Category</th>
+            <th>Extension Filter</th>
+            <th>Recursive</th>
+            <th>Pack Type</th>
+            <th>Source Path</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if rules %}
+            {% for r in rules %}
+              <tr>
+                <td><strong>{{ r.category }}</strong></td>
+                <td><span class="mono" style="color: var(--accent);">{{ r.extension_filter }}</span></td>
+                <td>{{ 'Yes' if r.is_recursive else 'No' }}</td>
+                <td><span class="mono">{{ r.pack_type }}</span></td>
+                <td class="mono" style="word-break: break-all;">{{ r.source_path }}</td>
+              </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 20px;">No path rules configured for this profile.</td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <!-- Modals -->
+  <!-- Save Slot Modal -->
+  <div id="modal-save" class="modal-overlay">
+    <div class="modal-card">
+      <h4>Snapshot Active State to Slot</h4>
+      <p id="modal-save-desc">Snapshot current active customizations and files into slot.</p>
+      <input type="hidden" id="save-slot-id">
+      <div class="form-group">
+        <label>Slot Descriptive Label</label>
+        <input type="text" id="save-slot-label" class="form-control" placeholder="e.g. React Experiment v1">
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeModal('modal-save')">Cancel</button>
+        <button class="btn btn-primary" onclick="submitSaveSlot()">Save Snapshot</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Copy Slot Modal -->
+  <div id="modal-copy" class="modal-overlay">
+    <div class="modal-card">
+      <h4>Clone / Copy Slot</h4>
+      <p id="modal-copy-desc">Select target destination slot to overwrite.</p>
+      <input type="hidden" id="copy-src-id">
+      <div class="form-group">
+        <label>Destination Slot (1-10)</label>
+        <select id="copy-dst-id" class="form-control">
+          {% for sid in range(1, 11) %}
+            <option value="{{ sid }}">Slot {{ sid }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeModal('modal-copy')">Cancel</button>
+        <button class="btn btn-primary" onclick="submitCopySlot()">Copy Slot</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- New Profile Modal -->
+  <div id="modal-new-profile" class="modal-overlay">
+    <div class="modal-card">
+      <h4>Create New Snapshot Profile</h4>
+      <p>Generates a dedicated profile with its own 10 slots + 1 emergency slot.</p>
+      <div class="form-group">
+        <label>Profile Name (snake_case)</label>
+        <input type="text" id="new-profile-name" class="form-control" placeholder="e.g. python_dev">
+      </div>
+      <div class="form-group">
+        <label>Descriptive Label</label>
+        <input type="text" id="new-profile-label" class="form-control" placeholder="e.g. Python Development Suite">
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeModal('modal-new-profile')">Cancel</button>
+        <button class="btn btn-primary" onclick="submitNewProfile()">Create Profile</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Path Rule Modal -->
+  <div id="modal-add-rule" class="modal-overlay">
+    <div class="modal-card">
+      <h4>Add Discovery Path Rule</h4>
+      <p>Configure which paths and file extensions are discovered and backed up.</p>
+      <div class="form-group">
+        <label>Category (e.g. skills, hooks, rules)</label>
+        <input type="text" id="new-rule-category" class="form-control" placeholder="skills">
+      </div>
+      <div class="form-group">
+        <label>Source Path</label>
+        <input type="text" id="new-rule-path" class="form-control" placeholder="/data/data/com.termux/files/home/...">
+      </div>
+      <div class="form-group">
+        <label>Extension Filter (e.g. .py, .md or leave empty for all)</label>
+        <input type="text" id="new-rule-ext" class="form-control" placeholder=".py">
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeModal('modal-add-rule')">Cancel</button>
+        <button class="btn btn-primary" onclick="submitAddRule()">Add Rule</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Emergency Modal -->
+  <div id="modal-emergency" class="modal-overlay">
+    <div class="modal-card">
+      <h4 style="color: var(--accent);">Emergency Master Restoration</h4>
+      <p>This operation unloads all active experimental components, restores the golden master image (Slot 11), and switches the chamber to the neutral baseline.</p>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeModal('modal-emergency')">Cancel</button>
+        <button class="btn btn-danger" onclick="submitEmergencyRestore()">Confirm Emergency Restore</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div id="modal-settings" class="modal-overlay">
+    <div class="modal-card">
+      <h4>Loaded Chamber Settings</h4>
+      <p>Antigravity 10-Slot Disc Changer & Universal Snapshot System</p>
+      <div class="form-group">
+        <label>Engine Version</label>
+        <div class="mono" style="color: var(--text-muted);">10400 (BEJSON 104a MFDB)</div>
+      </div>
+      <div class="form-group">
+        <label>Active Storage Root</label>
+        <div class="mono" style="color: var(--text-muted);">~/agy-slots/</div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-primary" onclick="closeModal('modal-settings')">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    Loaded Chamber System · Author: Elton Boehnen · boehnenelton2024@gmail.com · boehnenelton2024.pages.dev · github.com/boehnenelton<br>
+    License: <a href="https://polyformproject.org/licenses/noncommercial/1.0.0/" target="_blank">PolyForm Noncommercial License 1.0.0</a>
+  </footer>
+
+  <script>
+    const activeProfile = "{{ active_profile }}";
+
+    function openModal(id) {
+      document.getElementById(id).classList.add('open');
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.remove('open');
+    }
+
+    function toggleMenu() {
+      const p = prompt("Switch to profile name (e.g. agy, skills):", activeProfile);
+      if (p && p.trim() && p.trim() !== activeProfile) {
+        selectProfile(p.trim());
+      }
+    }
+
+    async function loadSlot(slotId) {
+      if (!confirm(`Switch chamber and load Slot ${slotId}?`)) return;
+      try {
+        const res = await fetch('/api/slot/load', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({slot_id: slotId, profile: activeProfile, auto_save: false})
+        });
+        const data = await res.json();
+        if (data.status === 'success') {
+          alert(`Slot ${slotId} loaded successfully (${data.result.restored} records restored).`);
+          location.reload();
+        } else {
+          alert('Error: ' + data.message);
+        }
+      } catch (err) {
+        alert('Network error: ' + err);
+      }
+    }
+
+    function openSaveModal(slotId) {
+      document.getElementById('save-slot-id').value = slotId;
+      document.getElementById('modal-save-desc').innerText = `Snapshot current state into Slot ${slotId}.`;
+      openModal('modal-save');
+    }
+
+    async function submitSaveSlot() {
+      const slotId = parseInt(document.getElementById('save-slot-id').value);
+      const label = document.getElementById('save-slot-label').value.trim();
+      try {
+        const res = await fetch('/api/slot/save', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({slot_id: slotId, profile: activeProfile, label: label || null})
+        });
+        const data = await res.json();
+        if (data.status === 'success') {
+          alert(`Active state snapshotted into Slot ${slotId} (${data.result.items} items).`);
+          closeModal('modal-save');
+          location.reload();
+        } else {
+          alert('Error: ' + data.message);
+        }
+      } catch (err) {
+        alert('Network error: ' + err);
+      }
+    }
+
+    function openCopyModal(srcId) {
+      document.getElementById('copy-src-id').value = srcId;
+      document.getElementById('modal-copy-desc').innerText = `Copy all snapshots from Slot ${srcId} into target destination slot.`;
+      openModal('modal-copy');
+    }
+
+    async function submitCopySlot() {
+      const srcId = parseInt(document.getElementById('copy-src-id').value);
+      const dstId = parseInt(document.getElementById('copy-dst-id').value);
+      if (srcId === dstId) {
+        alert('Source and destination slot cannot be the same.');
+        return;
+      }
+      try {
+        const res = await fetch('/api/slot/copy', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({src_id: srcId, dst_id: dstId, profile: activeProfile})
+        });
+        const data = await res.json();
+        if (data.status === 'success') {
+          alert(`Cloned Slot ${srcId} to Slot ${dstId} successfully.`);
+          closeModal('modal-copy');
+          location.reload();
+        } else {
+          alert('Error: ' + data.message);
+        }
+      } catch (err) {
+        alert('Network error: ' + err);
+      }
+    }
+
+    function openEmergencyModal() {
+      openModal('modal-emergency');
+    }
+
+    async function submitEmergencyRestore() {
+      try {
+        const res = await fetch('/api/slot/emergency-restore', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({profile: activeProfile})
+        });
+        const data = await res.json();
+        if (data.status === 'success') {
+          alert(`Emergency golden image restored. Neutral baseline active.`);
+          closeModal('modal-emergency');
+          location.reload();
+        } else {
+          alert('Error: ' + data.message);
+        }
+      } catch (err) {
+        alert('Network error: ' + err);
+      }
+    }
+
+    async function selectProfile(pname) {
+      try {
+        const res = await fetch('/api/profile/select', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({profile_name: pname})
+        });
+        const data = await res.json();
+        if (data.status === 'success') {
+          window.location.href = `/?profile=${pname}`;
+        } else {
+          alert('Error: ' + data.message);
+        }
+      } catch (err) {
+        alert('Network error: ' + err);
+      }
+    }
+
+    async function submitNewProfile() {
+      const name = document.getElementById('new-profile-name').value.trim();
+      const label = document.getElementById('new-profile-label').value.trim();
+      if (!name) {
+        alert('Profile name is required.');
+        return;
+      }
+      try {
+        const res = await fetch('/api/profile/create', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({profile_name: name, label: label})
+        });
+        const data = await res.json();
+        if (data.status === 'success') {
+          alert(`Created profile '${name}' with 10 slots.`);
+          window.location.href = `/?profile=${name}`;
+        } else {
+          alert('Error: ' + data.message);
+        }
+      } catch (err) {
+        alert('Network error: ' + err);
+      }
+    }
+
+    async function submitAddRule() {
+      const cat = document.getElementById('new-rule-category').value.trim();
+      const sp = document.getElementById('new-rule-path').value.trim();
+      const ext = document.getElementById('new-rule-ext').value.trim();
+      if (!cat || !sp) {
+        alert('Category and source path are required.');
+        return;
+      }
+      try {
+        const res = await fetch('/api/profile/add-path', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            profile: activeProfile,
+            category: cat,
+            source_path: sp,
+            extension_filter: ext,
+            is_recursive: false,
+            pack_type: 'file'
+          })
+        });
+        const data = await res.json();
+        if (data.status === 'success') {
+          alert(`Added path rule to ${activeProfile}.`);
+          closeModal('modal-add-rule');
+          location.reload();
+        } else {
+          alert('Error: ' + data.message);
+        }
+      } catch (err) {
+        alert('Network error: ' + err);
+      }
+    }
+  </script>
+</body>
+</html>

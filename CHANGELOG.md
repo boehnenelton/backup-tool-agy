@@ -26,3 +26,8 @@ The format is based on Keep a Changelog, and this project adheres to Policy §3 
   - PolyForm Noncommercial 1.0.0 license.
   - Strict `.gitignore` and `.beignore` filtering out all backup archives, snapshot dumps, and temporary files.
   - Canonical `bejson_project.json` manifest.
+- **Flask Web Application & Lifecycle Manager (`app.py` / `server_manager.py`)**:
+  - Zero-SQL Flask web dashboard with responsive Tri-Color styling (`#000000`, `#FFFFFF`, `#DE2626`).
+  - Asynchronous background server manager with Termux clipboard URL copy and primary Chrome browser dispatch (`am start`).
+  - Dedicated PID tracking (`.server.pid`), execution logging (`server.log`), and 57-column mobile portrait TUI menu.
+  - REST API suite (`/api/status`, `/api/slot/load`, `/api/slot/save`, `/api/slot/copy`, `/api/slot/emergency-restore`, `/api/profile/*`).

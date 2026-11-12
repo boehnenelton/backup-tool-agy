@@ -162,3 +162,53 @@ chamber-cli slot emergency-restore -p skills
 chamber-cli slot emergency-save -p skills -l "Skills Master Image"
 ```
 
+---
+
+## 6. Flask Web Dashboard & Background Server Manager (`app.py` / `server_manager.py`)
+
+`backup-tool-agy` includes a full-featured, zero-SQL Flask web dashboard with an asynchronous background lifecycle manager adhering to Policy §3 Flask App Launch & Lifecycle Invariants.
+
+### Launching the Web Server
+
+```bash
+# Launch interactive TUI lifecycle manager (57/49-column mobile portrait menu)
+./run.sh web
+# or
+python3 ~/backup-tool-agy/server_manager.py
+
+# Start background daemon directly (binds to 127.0.0.1:5080)
+python3 ~/backup-tool-agy/server_manager.py start [--port 5080] [--host 127.0.0.1]
+
+# Inspect live status
+python3 ~/backup-tool-agy/server_manager.py status
+
+# Tail server log
+python3 ~/backup-tool-agy/server_manager.py log
+
+# Restart server
+python3 ~/backup-tool-agy/server_manager.py restart
+
+# Stop server daemon
+python3 ~/backup-tool-agy/server_manager.py stop
+```
+
+### Automation & Lifecycle Features
+- **Auto Clipboard Copy**: On start, automatically copies `http://localhost:<PORT>` to the Termux clipboard via `termux-clipboard-set`.
+- **Primary Browser Dispatch**: Launches Google Chrome directly via Android Activity Manager (`am start -n com.android.chrome/com.google.android.apps.chrome.Main -d http://localhost:<PORT>`), with fallback to `termux-open-url` / `xdg-open`.
+- **PID Lifecycle Tracking**: Tracks background daemon using `.server.pid` and pipes execution traces to `server.log`.
+- **Tri-Color Design**: Clean dark interface (`#000000` / `#FFFFFF` / `#DE2626`) conforming to the Header Design Law and Zero-Filler Skeleton Law.
+
+### REST API Endpoints
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/api/status` | Returns active profile, active slot, all profiles, slots, and path rules |
+| `POST` | `/api/slot/load` | Switch disc chamber to target slot (`{"slot_id": 1, "profile": "agy"}`) |
+| `POST` | `/api/slot/save` | Snapshot active state to target slot (`{"slot_id": 2, "label": "..."}`) |
+| `POST` | `/api/slot/copy` | Clone one slot into another (`{"src_id": 1, "dst_id": 3}`) |
+| `POST` | `/api/slot/emergency-restore` | Restore master golden emergency image (`{"profile": "agy"}`) |
+| `POST` | `/api/profile/select` | Switch active profile (`{"profile_name": "skills"}`) |
+| `POST` | `/api/profile/create` | Create new profile with 10 slots (`{"profile_name": "...", "label": "..."}`) |
+| `POST` | `/api/profile/add-path` | Add discovery path rule with extension filter |
+
+
